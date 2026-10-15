@@ -1,11 +1,11 @@
 """
 Statistics over random two-scale surfaces with FIXED amplitudes, UNIFORM RANDOM PHASES and FLAT-BAND spectra:
     smooth part   f(x)    = sum_{m=1..3}      A_s cos(mKx + phi_m)            (A_s fixed, flat band)
-    small scale   zeta(x) = sum_{m=m1..m2}    A_b cos(mKx + psi_m)            (A_b fixed by the target k*sigma_zeta, flat band)
+    small scale   psi(x)  = sum_{m=m1..m2}    A_b cos(mKx + chi_m)            (A_b fixed by the target k*sigma_psi, flat band)
 L = 10 lambda, sin(theta_i) = 0.35, eps = 2.25.  Phases are drawn independently for every realisation (both scales).
 Reference: C-method.  Models: KA of the full profile, KA+MVB (n<=3) with KA zeroth order, and with exact zeroth order.
 Error = relative L1 distance of the reflected / transmitted efficiencies over the propagating orders.
-usage: python random_stats.py compute | summary   (cache for Figs. 2c and 3 of the paper; ~11 min on 8 cores)
+usage: python random_stats.py compute | summary   (cache for Fig. 2 of the paper; ~6 min on 6 cores of an i7-9700)
 """
 import os, sys, time
 import numpy as np
@@ -18,7 +18,7 @@ from cmethod import c_method, spectral_derivative
 WLr, SIN, EPS = 0.1, 0.35, 2.25
 A_S, M_S = 0.008, (1, 2, 3)                              # smooth band, flat amplitude (units of L)
 BANDS = {"B1: m=5-10": (5, 10), "B2: m=8-14": (8, 14), "B3: m=12-20": (12, 20)}
-KSIG = [0.05, 0.1, 0.2, 0.3]                             # target k*sigma_zeta of the small scale
+KSIG = [0.05, 0.1, 0.2, 0.3]                             # target k*sigma_psi of the small scale
 NREAL = 40
 POLS = ("TE", "TM")
 FILE = os.path.join(DATA, "random_stats.npz")
@@ -26,7 +26,7 @@ def l1(e, er, m): return np.abs(e - er)[m].sum() / er[m].sum()
 
 def build(p, band, ksig, rng):
     m1, m2 = BANDS[band]; ms = np.arange(m1, m2 + 1); M = len(ms)
-    A_b = ksig / p.k * np.sqrt(2.0 / M)                  # sigma_zeta = A_b sqrt(M/2)
+    A_b = ksig / p.k * np.sqrt(2.0 / M)                  # sigma_psi = A_b sqrt(M/2)
     ph, ps = rng.uniform(0, 2 * np.pi, len(M_S)), rng.uniform(0, 2 * np.pi, M)
     f = sum(A_S * np.cos(m * p.K * p.x + a) for m, a in zip(M_S, ph)); f1 = sum(-A_S * m * p.K * np.sin(m * p.K * p.x + a) for m, a in zip(M_S, ph))
     z = sum(A_b * np.cos(m * p.K * p.x + a) for m, a in zip(ms, ps)); z1 = sum(-A_b * m * p.K * np.sin(m * p.K * p.x + a) for m, a in zip(ms, ps))
@@ -35,7 +35,7 @@ def build(p, band, ksig, rng):
 def one(args):
     ib, ik, ip, ir = args
     band, ksig, pol = list(BANDS)[ib], KSIG[ik], POLS[ip]
-    out = np.full(14, np.nan)   # eR: KAfull, MVB_KA, MVB_ex | eT: same | cond | C_tot(actual) | C_smooth | max slope | k sigma_zeta(actual) | Rayleigh-vs-C | rmax
+    out = np.full(18, np.nan)   # [14: eR smooth profile alone (exact n=0), 15: eR MVB(KA zeroth, evanescent zero), 16-17: eT of both] # eR: KAfull, MVB_KA, MVB_ex | eT: same | cond | C_tot(actual) | C_smooth | max slope | k sigma_psi(actual) | Rayleigh-vs-C | rmax
     try:
         with np.errstate(all="ignore"):
             th = np.arcsin(SIN)
@@ -55,13 +55,15 @@ def one(args):
             c3 = 2 * p.k * np.cos(th) ** 3
             out[7] = np.abs(spectral_derivative(p, F, 2)).max() / c3; out[8] = np.abs(spectral_derivative(p, f, 2)).max() / c3
             out[9] = np.abs(F1).max(); out[10] = p.k * z.std(); out[11] = e2(rayleigh_exact(p, F, F1))[0]; out[12] = rmax
+            out[14], out[17] = e2(Bx)
+            dpp, dmp = mvb_coefficients(p, f, f1, z, z1, ka_amplitudes_propagating(p, f, f1), 3, smooth=op); out[15], out[16] = e2(mvb_sum(dpp, dmp, 1, 3))
     except Exception:
         pass
     return ib, ik, ip, ir, out
 
 def compute():
     tasks = [(ib, ik, ip, ir) for ib in range(len(BANDS)) for ik in range(len(KSIG)) for ip in range(2) for ir in range(NREAL)]
-    data = np.full((len(BANDS), len(KSIG), 2, NREAL, 14), np.nan); t0 = time.time()
+    data = np.full((len(BANDS), len(KSIG), 2, NREAL, 18), np.nan); t0 = time.time()
     with Pool(8) as pool:
         for k, (ib, ik, ip, ir, out) in enumerate(pool.imap_unordered(one, tasks, chunksize=4)):
             data[ib, ik, ip, ir] = out

@@ -1,5 +1,5 @@
 """
-Scattering from a 1D two-scale periodic dielectric surface z = f(x) + delta*zeta(x).
+Scattering from a 1D two-scale periodic dielectric surface z = f(x) + xi*psi(x).
 
 Implements
   * Kirchhoff (tangent-plane) amplitudes for the smooth surface f   (d_{0,r})
@@ -81,6 +81,12 @@ def ka_amplitudes(prob, f, f1):
     return Bp, Bm
 
 
+def ka_amplitudes_propagating(prob, f, f1):
+    """Kirchhoff amplitudes of the propagating orders only; the evanescent ones are set to zero (KA is a far-field approximation)."""
+    Bp, Bm = ka_amplitudes(prob, f, f1)
+    return np.where(prob.prop_p, Bp, 0), np.where(prob.prop_m, Bm, 0)
+
+
 # ----------------------------------------------------------------------------- Rayleigh / MVB matrices
 def _coeff_matrix(prob, cols):
     """Given cols[:, j] = g_j(x) (one function per Rayleigh order r_j), return the matrix
@@ -129,7 +135,7 @@ def rayleigh_exact(prob, F, F1):
 
 # ----------------------------------------------------------------------------- MVB recursion
 def _power_terms(prob, F, F1, Z, Z1, m, sign, E0=None):
-    """Columns for delta^m coefficient of  e^{i s b (F+dZ)}  and of the BC2 prefactor times it.
+    """Columns for the xi^m coefficient of  e^{i s b (F+xi*Z)}  (Z = psi(x), the small-scale roughness)  and of the BC2 prefactor times it.
     sign=+1: reflected (b=beta+), sign=-1: transmitted (b=beta-, phase -i b).
     E0 = exp(i s b F) may be passed in (it only depends on the smooth profile)."""
     b = prob.bp if sign > 0 else prob.bm
@@ -150,7 +156,7 @@ def _power_terms(prob, F, F1, Z, Z1, m, sign, E0=None):
 
 
 class SmoothOperator:
-    """Everything of the recursion that depends only on the smooth profile f (not on the roughness zeta):
+    """Everything of the recursion that depends only on the smooth profile f (not on the roughness psi):
     the LU factorisation of the Rayleigh matrix and the exponentials exp(+-i beta_r f).
     Build it once and pass it to mvb_coefficients(..., smooth=op) to treat many roughness realisations."""
 
@@ -165,7 +171,7 @@ def mvb_coefficients(prob, f, f1, z, z1, d0, nmax, smooth=None):
     """Taylor coefficients d^{+-}_{n,r}, n=0..nmax.
     d0 = (Bp0, Bm0): zeroth-order amplitudes (KA, or the exact smooth-surface solution).
     smooth: optional SmoothOperator(prob, f, f1) to reuse the factorisation.  z, z1 may be complex
-    (the d_n are polynomials in zeta).  Returns lists dp[n], dm[n]."""
+    (the d_n are polynomials in psi).  Returns lists dp[n], dm[n]."""
     n_r = len(prob.r)
     if smooth is None:
         lu, E0p, E0m = lu_factor(system_matrix(prob, f, f1)), None, None
@@ -173,7 +179,7 @@ def mvb_coefficients(prob, f, f1, z, z1, d0, nmax, smooth=None):
         lu, E0p, E0m = smooth.lu, smooth.E0p, smooth.E0m
     dp, dm = [d0[0]], [d0[1]]
 
-    # coupling matrices for each power m of zeta (cached)
+    # coupling matrices for each power m of psi (cached)
     C = {}
     for m in range(1, nmax + 1):
         c1p, c2p = _power_terms(prob, f, f1, z, z1, m, +1, E0p)
@@ -181,7 +187,7 @@ def mvb_coefficients(prob, f, f1, z, z1, d0, nmax, smooth=None):
         C[m] = (_coeff_matrix(prob, c1p), _coeff_matrix(prob, c2p),
                 _coeff_matrix(prob, c1m), _coeff_matrix(prob, c2m))
 
-    # incident wave contributions for each order n:  e^{-i beta (f+dz)} and BC2 prefactor
+    # incident wave contributions for each order n:  e^{-i beta (f+xi*z)} and BC2 prefactor
     inc = {}
     for n in range(1, nmax + 1):
         ph = -1j * prob.beta
@@ -211,11 +217,11 @@ def mvb_coefficients(prob, f, f1, z, z1, d0, nmax, smooth=None):
     return dp, dm
 
 
-def mvb_sum(dp, dm, delta=1.0, order=None):
-    """Partial sums  sum_{n<=order} d_n delta^n."""
+def mvb_sum(dp, dm, xi=1.0, order=None):
+    """Partial sums  sum_{n<=order} d_n xi^n."""
     order = len(dp) - 1 if order is None else order
-    Bp = sum(dp[n] * delta ** n for n in range(order + 1))
-    Bm = sum(dm[n] * delta ** n for n in range(order + 1))
+    Bp = sum(dp[n] * xi ** n for n in range(order + 1))
+    Bm = sum(dm[n] * xi ** n for n in range(order + 1))
     return Bp, Bm
 
 

@@ -4,7 +4,7 @@ base case  L = 10 lambda, theta_i ~ 20 deg (sin = 0.35), eps = 2.25, a = 0.03 L 
   * L/lambda = 5, 20          * incidence angle (sin theta = 0.05 ... 0.85)        * eps = 1.5, 4, 9        * aK = 0.10, 0.28, 0.38
 Angles are chosen at half-way between Wood anomalies.  Reference: C-method.  n <= 3, KA zeroth order (and exact zeroth order).
 Metrics: relative L1 error of the reflected (R) and transmitted (T) efficiencies over the propagating orders.
-usage: python robustness.py compute | summary   (cache for Fig. 3 of the paper; ~7 min on 8 cores)
+usage: python robustness.py compute | summary   (cache for Fig. 2 of the paper; ~4 min on 8 cores of an i7-9700)
 """
 import os, sys, time
 import numpy as np
@@ -42,7 +42,7 @@ def cell(args):
     ic, ip, iL, ik = args
     name, c = NAMES[ic], CONF[NAMES[ic]]
     Lrel = c["L"]; Lam = LAMS[Lrel][iL]; kb = KBS[ik]; pol = POLS[ip]
-    out = np.full(8, np.nan)       # eR: KAfull, MVB(KA), MVB(exact) ; eT: same ; cond ; Rayleigh-vs-C check
+    out = np.full(12, np.nan)      # eR: KAfull, MVB(KA), MVB(exact) ; eT: same ; cond ; Rayleigh-vs-C check ; eR smooth profile alone (exact n=0), eR MVB(KA zeroth, evanescent orders zero), eT of both
     try:
         with np.errstate(all="ignore"):
             wl = 1.0 / Lrel; th = np.arcsin(c["sin"]); b = kb * wl / (2 * np.pi)
@@ -60,13 +60,15 @@ def cell(args):
             (out[0], out[3]), (out[1], out[4]), (out[2], out[5]) = e2(Bf), e2(mvb_sum(dpk, dmk, 1, 3)), e2(mvb_sum(dpx, dmx, 1, 3))
             out[6] = np.linalg.cond(system_matrix(p, f, f1))
             out[7] = e2(rayleigh_exact(p, F, F1))[0]
+            out[8], out[11] = e2(Bx)
+            dpp, dmp = mvb_coefficients(p, f, f1, z, z1, ka_amplitudes_propagating(p, f, f1), 3, smooth=op); out[9], out[10] = e2(mvb_sum(dpp, dmp, 1, 3))
     except Exception:
         pass
     return ic, ip, iL, ik, out
 
 def compute():
     tasks = [(ic, ip, iL, ik) for ic in range(len(NAMES)) for ip in range(2) for iL in range(7) for ik in range(len(KBS))]
-    data = np.full((len(NAMES), 2, 7, len(KBS), 8), np.nan); t0 = time.time()
+    data = np.full((len(NAMES), 2, 7, len(KBS), 12), np.nan); t0 = time.time()
     with Pool(8) as pool:
         for k, (ic, ip, iL, ik, out) in enumerate(pool.imap_unordered(cell, tasks, chunksize=4)):
             data[ic, ip, iL, ik] = out

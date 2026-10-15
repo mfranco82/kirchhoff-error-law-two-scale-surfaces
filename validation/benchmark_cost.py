@@ -1,7 +1,7 @@
 """
-Cost of the different routes for one profile (Table 1 of the paper; timings: best of REP runs, one core; run it on an otherwise idle machine).
+Cost of the different routes for one profile (cost paragraph of Sec. 5 of the paper; timings: best of REP runs, one core; run it on an otherwise idle machine).
 
-Profile of Fig. 2(a): z = a cos(Kx) + b cos(Lambda K x), a = 0.03 L, Lambda = 15, kb = 0.25, L = 10 lambda, sin(theta_i) = 0.35, eps = 2.25, TE.
+Base-case profile: z = a cos(Kx) + b cos(Lambda K x), a = 0.03 L, Lambda = 15, kb = 0.25, L = 10 lambda, sin(theta_i) = 0.35, eps = 2.25, TE.
   * exact reference solutions of the full profile: Rayleigh (direct) and C-method
   * KA applied to the full profile (the two-scale Kirchhoff model)
   * series KA + MVB (n <= 3): zeroth order (KA or exact) + factorization of the smooth-profile operator (both done once) + recursion
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     t_op = best(lambda: SmoothOperator(p, f, f1)); op = SmoothOperator(p, f, f1)
     Bk, Bx = ka_amplitudes(p, f, f1), rayleigh_exact(p, f, f1)
     t_ska = best(lambda: mvb_coefficients(p, f, f1, z, z1, Bk, 3, smooth=op)); t_sex = best(lambda: mvb_coefficients(p, f, f1, z, z1, Bx, 3, smooth=op))
-    print(f"profile of Fig. 2(a): Lambda={LAM}, kb={KB}, r_max={rmax} ({2 * rmax + 1} orders), N=4096")
+    print(f"base-case profile: Lambda={LAM}, kb={KB}, r_max={rmax} ({2 * rmax + 1} orders), N=4096")
     print(f"  Rayleigh, full profile  {1e3 * t_ray:6.0f} ms")
     print(f"  C-method, full profile  {1e3 * t_c:6.0f} ms")
     print(f"  KA, full profile        {1e3 * t_kaf:6.0f} ms")

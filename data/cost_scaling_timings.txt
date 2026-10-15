@@ -1,0 +1,8 @@
+# cost_scaling.py, timings quoted in the cost paragraph of Sec. 5 of the paper. Intel Core i7-9700 (desktop), one thread, NumPy; 2026-10-15; run on an otherwise idle machine, two consecutive runs agree to ~5 % (the i5-1035G1 notebook run of 2026-10-06 is kept in old_versions/review_2026-10-15a/data/)
+ L/lam orders(KA) orders(exact)     N |       KA  Rayleigh  C-method KA zeroth ex. zeroth   factoriz.   recursion series(KA0) series(ex0)   [s, 1 thread]
+     5         19           115  4096 |    0.008     0.047     0.158     0.039     0.044       0.062       0.163     0.265     0.270
+    10         37           115  4096 |    0.011     0.047     0.149     0.037     0.043       0.060       0.162     0.258     0.265
+    21         77           115  4096 |    0.024     0.046     0.149     0.039     0.049       0.060       0.163     0.262     0.272
+    41        151           175  4096 |    0.054     0.081     0.365     0.063     0.082       0.113       0.257     0.433     0.452
+    83        307           331  4096 |    0.109     0.176     1.677     0.114     0.164       0.235       0.496     0.845     0.895
+   163        603           627  4096 |    0.240     0.410     8.221     0.240     0.430       0.533       1.114     1.887     2.077

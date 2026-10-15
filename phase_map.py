@@ -4,7 +4,7 @@ Profile: z = a cos(Kx) + b cos(Lambda K x),  L = 10 lambda, a = 0.03 L (aK = 0.1
 Reference: C-method (valid beyond the Rayleigh hypothesis).  Models: KA of the smooth profile, KA of the FULL profile,
 KA+MVB (n<=3) with KA zeroth order, and with the exact (Rayleigh) zeroth order of the smooth profile.
 Error = relative L1 distance of the reflected efficiencies over the propagating orders.
-usage: python phase_map.py compute | table   (cache for Fig. 4 of the paper; ~1.5 min on 8 cores)
+usage: python phase_map.py compute | table   (cache for Fig. 2 of the paper, the (Lambda, kb) grid at 20 deg; ~1 min on 8 cores of an i7-9700)
 """
 import os, sys, time
 import numpy as np
@@ -25,7 +25,7 @@ def l1(e, er, m): return np.abs(e - er)[m].sum() / er[m].sum()
 def cell(args):
     ip, iL, ik = args
     pol, Lam, kb = POLS[ip], LAMS[iL], KBS[ik]
-    out = np.full(6, np.nan)           # KA_smooth, KA_full, MVB_KA(n<=3), MVB_exact(n<=3), cond, ref check (Rayleigh vs C)
+    out = np.full(8, np.nan)           # KA_smooth, KA_full, MVB_KA(n<=3), MVB_exact(n<=3), cond, ref check (Rayleigh vs C), exact smooth profile alone (n=0), MVB(KA zeroth, evanescent orders zero)
     try:
         with np.errstate(all="ignore"):
             b = kb / (2 * np.pi / WLr)
@@ -43,13 +43,15 @@ def cell(args):
             dp, dm = mvb_coefficients(p, f, f1, z, z1, Bx, 3, smooth=op); out[3] = ef(mvb_sum(dp, dm, 1, 3))
             out[4] = np.linalg.cond(system_matrix(p, f, f1))
             out[5] = l1(efficiencies(p, *rayleigh_exact(p, F, F1))[0], ref, s)
+            out[6] = ef(Bx)
+            dp, dm = mvb_coefficients(p, f, f1, z, z1, ka_amplitudes_propagating(p, f, f1), 3, smooth=op); out[7] = ef(mvb_sum(dp, dm, 1, 3))
     except Exception as e:
         pass
     return ip, iL, ik, out
 
 def compute():
     tasks = [(ip, iL, ik) for ip in range(2) for iL in range(len(LAMS)) for ik in range(len(KBS))]
-    data = np.full((2, len(LAMS), len(KBS), 6), np.nan); t0 = time.time()
+    data = np.full((2, len(LAMS), len(KBS), 8), np.nan); t0 = time.time()
     with Pool(8) as pool:
         for ip, iL, ik, out in pool.imap_unordered(cell, tasks):
             data[ip, iL, ik] = out

@@ -1,25 +1,28 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 type: software
-title: "Code for: Small-Scale Corrections to the Kirchhoff Approximation for Scattering from Multi-Scale Rough Dielectric Surfaces"
+title: "Code for: Error law and tolerance limits of the Kirchhoff approximation on two-scale dielectric surfaces, with boundary-variation corrections"
 abstract: >-
-  Python code that generates the figures of the Results section and the validation scripts of the paper. The Kirchhoff approximation
-  (an expansion in the curvature of the surface) and the method of variation of boundaries (an expansion in its height) are combined for
-  dielectric surfaces made of a smooth periodic profile carrying a small-scale roughness (1D, TE and TM). The boundary variations are taken
-  about the periodic surface; the zeroth order is either the Kirchhoff amplitudes or the exact solution of the smooth profile. The reference
-  solutions are an independent C-method solver and the Rayleigh method.
+  Python code and cached data behind the figure, the tables and the numbers of the paper, and the validation scripts. The paper gives the
+  error law of the Kirchhoff approximation (KA, an expansion in the curvature of the surface) against its validity parameter C and the
+  slope of the roughness, and the limits of C for a tolerated error, for one-dimensional lossless dielectric surfaces made of a smooth
+  periodic profile carrying a small-scale roughness (TE and TM), against an independent C-method reference with energy conservation as a
+  check. A boundary-variation series (the method of variation of boundaries, an expansion in the height, taken about the periodic
+  surface, with the Kirchhoff amplitudes or the exact solution of the smooth profile as zeroth order) is used to measure how far the
+  small scale can be added to the smooth-profile solution.
 authors:
   - family-names: Franco
     given-names: Mariano
     email: mfranco@iafe.uba.ar
     affiliation: "Instituto de Astronomía y Física del Espacio (IAFE), CONICET-Universidad de Buenos Aires, Argentina"
-version: 0.2.0
-date-released: "2026-10-03"
+version: 0.3.0
+date-released: "2026-10-15"
 license: MIT
-repository-code: "https://github.com/mfranco82/Small-Scale-Corrections-to-Kirchhoff-Approx-for-Scattering-from-Multi-Scale-Rough-Surfaces"
+repository-code: "https://github.com/mfranco82/kirchhoff-error-law-two-scale-surfaces"
 keywords:
   - electromagnetic scattering
   - rough surfaces
   - Kirchhoff approximation
+  - validity of the Kirchhoff approximation
   - method of variation of boundaries
   - perturbation theory

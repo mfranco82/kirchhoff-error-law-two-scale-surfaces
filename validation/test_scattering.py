@@ -27,7 +27,7 @@ def test_energy(pol):
     assert abs(ep.sum() + em.sum() - 1) < 1e-6
 
 def test_recursion(pol):
-    """With exact d_0 the MVB series must converge to the exact solution for f+delta*zeta,
+    """With exact d_0 the MVB series must converge to the exact solution for f+xi*psi,
     the error of order n scaling as b^(n+1)."""
     errs = {}
     for b in (0.002, 0.001):

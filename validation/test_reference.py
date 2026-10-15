@@ -1,7 +1,7 @@
 """
 Validation of the reference solution used by the series (Rayleigh method) against the C-method.
 
-The reference is the Rayleigh (Fourier-Galerkin) solution of the full profile f+zeta (scattering.rayleigh_exact).
+The reference is the Rayleigh (Fourier-Galerkin) solution of the full profile f+psi (scattering.rayleigh_exact).
 It shares the Rayleigh expansion with the MVB recursion, so it is NOT an independent benchmark by itself.
 Here it is compared with the C-method (cmethod.py), which does not use the Rayleigh hypothesis.
 

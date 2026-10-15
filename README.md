@@ -1,83 +1,113 @@
-# Small-scale corrections to the Kirchhoff approximation: code for the figures and validation
+# Code for: Error law and tolerance limits of the Kirchhoff approximation on two-scale dielectric surfaces, with boundary-variation corrections
 
 [![DOI](https://zenodo.org/badge/1403194780.svg)](https://zenodo.org/badge/latestdoi/1403194780)
 
-Python code that generates the figures of the Results section (Figs. 2–4) and the numbers quoted in the text of
+Python code that generates the figure of the Results section (Fig. 2) and the numbers quoted in the text of
 
-> M. Franco, *Small-Scale Corrections to the Kirchhoff Approximation for Scattering from Multi-Scale Rough Dielectric Surfaces*.
+> M. Franco, *Error law and tolerance limits of the Kirchhoff approximation on two-scale dielectric surfaces, with boundary-variation corrections*.
 
-together with the scripts that validate the numerical reference (`validation/`).
+together with the scripts that validate the numerical reference and the formulation (`validation/`).
 
 The Kirchhoff approximation (KA) is an expansion in the **curvature** of a surface (valid when `C = max|F''|/(2k cos³θ_i) ≪ 1`),
-and the method of variation of boundaries is an expansion in its **height** (`kb ≪ 1`). The paper combines them for a 1D dielectric
-interface made of a smooth periodic profile, for which KA holds, carrying a small-scale roughness of low height but of wavelength
-comparable to the radiation, for which it does not. The boundary variations are taken **about the periodic surface** instead of a flat
-one, so the Taylor coefficients `d±_{n,r}` of order `n` are coupled across all Floquet orders `r`. The zeroth order of the series is either
-the Kirchhoff amplitudes of the smooth profile or its exact (Rayleigh) solution. TE and TM polarizations are supported. The reference
-solution is an independent C-method solver; the baseline is KA applied to the whole profile.
+and the method of variation of boundaries is an expansion in its **height** (`kb ≪ 1`). The paper measures, against a rigorous
+reference, how the error of KA grows on a 1D lossless dielectric interface made of a smooth periodic profile carrying a small-scale
+roughness of low height but of wavelength comparable to the radiation, and how far the small scale can be added to the smooth-profile
+solution as a boundary variation. The variations are taken **about the periodic surface** instead of a flat one, so the Taylor
+coefficients `d±_{n,r}` of order `n` are coupled across all Floquet orders `r`. The zeroth order of the series is either the Kirchhoff
+amplitudes of the propagating orders of the smooth profile ("KA zeroth order") or its exact (Rayleigh) solution ("exact zeroth order",
+which contains no KA). TE and TM polarizations are supported. The reference solution is an independent C-method solver; the baseline is
+KA applied to the whole profile.
 
 Figure 1 of the paper is a schematic of the geometry and is not produced by this code.
 
 ## Requirements
 
-* Python 3 with `numpy`, `scipy` and `matplotlib` (see `requirements.txt`; tested with Python 3.12.7, numpy 1.26.4,
-  scipy 1.13.1, matplotlib 3.9.2).
-* A LaTeX installation with the `mathpazo` and `amsmath` packages (e.g. TeX Live): the figures are drawn with `text.usetex`, so that their
+* Python 3 with `numpy`, `scipy` and `matplotlib` (see `requirements.txt`; tested with Python 3.12.4–3.12.7, numpy 1.26.4,
+  scipy 1.13.1, matplotlib 3.8.4 and 3.9.2).
+* A LaTeX installation with the `mathpazo` and `amsmath` packages (e.g. TeX Live): the figure is drawn with `text.usetex`, so that its
   typography matches the paper.
-* The cache-producing scripts use `multiprocessing.Pool(8)`. Every case is seeded independently, so the results do not depend on the
+* The cache-producing scripts use `multiprocessing.Pool(8)` (the 2026-10-15 regeneration used 6 workers for all but `robustness.py` and `phase_map.py`, which used 8). Every case is seeded independently, so the results do not depend on the
   number of cores (only the running time does).
 
 ## Contents
 
 | file | role |
 |---|---|
-| `scattering.py` | KA amplitudes of the smooth profile (reflected and transmitted), MVB recursion about the smooth surface (`mvb_coefficients`; `SmoothOperator` factorizes the system matrix once and reuses it for any roughness), Rayleigh solver (the exact zeroth order and a reference), efficiencies |
-| `cmethod.py` | independent C-method (Chandezon et al.) solver, which does not use the Rayleigh hypothesis; it is the reference of all the figures |
-| `make_results_figures.py` | Figs. 2–4 and the numbers quoted in the text |
-| `phase_map.py`, `robustness.py`, `random_stats.py` | studies that fill the caches in `data/` (see below) |
-| `data/` | cached results of the three studies, so the figures can be redrawn without recomputing |
-| `validation/` | tests of the solvers and of the recursion, stability scan and timings; see `validation/README.md` |
+| `scattering.py` | KA amplitudes of the smooth profile (reflected and transmitted; `ka_amplitudes_propagating` sets the evanescent ones to zero), MVB recursion about the smooth surface (`mvb_coefficients`; `SmoothOperator` factorizes the system matrix once and reuses it for any roughness), Rayleigh solver (the exact zeroth order and a diagnostic), efficiencies |
+| `cmethod.py` | independent C-method (Chandezon et al.) solver, which does not use the Rayleigh hypothesis; it is the reference of the paper |
+| `make_results_figures.py` | Fig. 2 and the numbers quoted in the text |
+| `robustness.py`, `phase_map.py`, `random_stats.py` | studies that fill the caches in `data/`: cosine profiles one parameter at a time, the grid in `Λ` and `kb`, and the random-phase profiles |
+| `data/` | cached results of the studies (and of the validation scripts), so that the figure and the numbers can be regenerated without recomputing; see below |
+| `validation/` | tests of the solvers and of the recursion, and the scripts behind the numbers of Secs. 4 and 5; see `validation/README.md` |
 
 Conventions: incident wave `exp(i(αx − βz))`, `α_r = α + rK`; TE has `ν² = 1` and TM `ν² = 1/ε`; the error of a model is the relative
-`L¹` distance between its efficiencies and the reference ones over the propagating orders.
+`L¹` distance between its efficiencies and the reference ones, `Σ_r|e_r − e_r^ref| / Σ_r e_r^ref`, over the propagating reflected
+orders (`ε⁺`) or the transmitted ones (`ε⁻`). The validity parameter `C` is computed for the full profile (for the cosine profiles, the
+sum of the contributions of both scales; for the random-phase profiles, from the maximum of `|z''|`); `s = kb λ/λ_s` is the slope of the
+small scale.
 
-## Reproducing the figures
+## Reproducing the figure and the numbers
 
-Run the commands from this folder. The figures are written to `figures/`, which is created if it does not exist.
+Run the commands from this folder. The figure is written to `figures/`, which is created if it does not exist.
 
-| figure | command | what it reads | time |
+| result | command | what it reads | time |
 |---|---|---|---|
-| Fig. 2, spectra and convergence | `python make_results_figures.py spectra` | recomputes three cases; random surface from `data/random_stats.npz` | ~5 s |
-| Fig. 3, error versus `C` | `python make_results_figures.py caxis` | `data/robustness.npz`, `data/random_stats.npz`, `data/phase_map.npz` | seconds |
-| Fig. 4, plane `(Λ, kb)` | `python make_results_figures.py phasemap` | `data/phase_map.npz` | seconds |
-| numbers of Secs. 4 and 5 | `python make_results_figures.py numbers` | all of the above | ~10 s |
+| Fig. 2, error versus `C` | `python make_results_figures.py caxis` | `data/robustness.npz`, `data/phase_map.npz`, `data/random_stats.npz` | seconds |
+| numbers of the abstract and of Secs. 4–5 (percentiles per bin of `C`, fit of the error law, gain of the series, 46 profiles with condition number above 1e15, stability by condition number, dependence on `kb` and on the slope, local versus global `C`, floor of the KA zeroth order against the incidence angle, base-case errors) | `python make_results_figures.py numbers` | the three caches above | ~10 s |
+| Table 2, limits of `C` for a tolerance | `python validation/tolerance_Cmax.py` | the caches | seconds |
+
+`make_results_figures.py` also has the commands `spectra` and `phasemap` (exploratory figures of the spectra of one case and of the
+plane `(Λ, kb)`), which are not in the paper.
+
+The figure is drawn in grayscale (the journal charges for colour art in print); the models are told apart by marker and line style as well
+as by grey level. The PDF of the paper was converted to a true `DeviceGray` colour space with Ghostscript
+(`gs -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray ...`); the script writes neutral grey RGB, which
+looks identical.
 
 The studies behind the caches can be rerun (they overwrite the files in `data/`):
 
-| cache | command | content | time (8 cores) |
+| cache | command | content | time (Intel Core i7-9700) |
 |---|---|---|---|
-| `phase_map.npz` | `python phase_map.py compute` | 9 values of `Λ` × 7 of `kb`, TE and TM (Fig. 4) | ~1.5 min |
-| `robustness.npz` | `python robustness.py compute` | cosine profiles, one parameter at a time: `L/λ`, incidence angle, `ε`, `aK` (Fig. 3) | ~7 min |
-| `random_stats.npz` | `python random_stats.py compute` | 40 random flat-band surfaces for each of 12 configurations, TE and TM (Figs. 2c and 3) | ~11 min |
+| `robustness.npz` | `python robustness.py compute` | 14 configurations of cosine profiles, one parameter at a time: `L/λ`, incidence angle, `ε`, `aK`; 7 values of `Λ`, 4 of `kb`, TE and TM | ~4 min (8 cores) |
+| `phase_map.npz` | `python phase_map.py compute` | 9 values of `Λ` × 7 of `kb` at `θ_i` = 20°, TE and TM | ~1 min (8 cores) |
+| `random_stats.npz` | `python random_stats.py compute` | 40 random-phase profiles for each of 12 configurations (3 bands × 4 amplitudes), TE and TM | ~6 min (6 cores) |
 
-`python phase_map.py table`, `python robustness.py summary` and `python random_stats.py summary` print the contents of the caches.
+`python robustness.py summary`, `python phase_map.py table` and `python random_stats.py summary` print the contents of the caches. Two
+configurations of `robustness.py` (grazing incidence, `sin θ_i` = 0.75 and 0.85, and `aK` = 0.38) are used only for the floor of the KA
+zeroth order and for the stability study, and are left out of Fig. 2.
 
-## Validation
+## Validation and other results of the paper
 
-The scripts in `validation/` check the Rayleigh solution against the C-method, the recursion, and the stability limits, and time the
-solvers. For example:
+The scripts in `validation/` check the numerical machinery (Rayleigh solver against the C-method, the formulation against independent
+calculations, the benchmark solvers) and produce the rest of the numbers of Secs. 4 and 5: bootstrap over the parameter sweeps, the
+separation of the dependence on `C` and on the slope (design of cells of equal `C`), the conditioning of the matrix of the smooth
+profile, convergence of the series with the order, other error metrics, the energy balance as a quality control of KA, and the timings.
+The `test_*.py` files end with assertions and exit with a non-zero status if a check fails:
 
 ```
 cd validation
-python test_scattering.py
-python test_reference.py
+python test_formulation.py     # 41 checks, ~20 s
+python test_benchmarks.py      # 23 checks, ~10 s
+python test_scattering.py      # ~2 s
+python test_reference.py       # ~2 s
+python test_reference_sweeps.py  # ~2 s
 ```
+
+`validation/README.md` lists every script, what it prints, where the number is quoted in the paper, and its running time. The caches
+that those scripts store are also in `data/`: `error_metrics.npz`, `series_convergence.npz`, `ka_energy_qc.npz`,
+`decorrelated_grid.npz`, `reference_truncation.npz`, `conditioning_diagnostics.txt` and `cost_scaling_timings.txt`.
+
+Timings are hardware dependent: `validation/cost_scaling.py` and `validation/benchmark_cost.py` must be run on an otherwise idle machine, on a
+single thread; the ratios between methods are what matters (the paper quotes an Intel Core i7-9700).
 
 ## Versions
 
 `v0.1.0` accompanied an earlier version of the paper (KA applied to the smooth profile as the baseline; an analytic average over random
-roughness). `v0.2.0` corresponds to the present approach, with KA of the full profile as the baseline, the validity parameter `C` as
-the organizing axis, and both zeroth orders. The DOI badge above always points to the latest version.
+roughness). `v0.2.0` corresponds to the approach of the paper at that stage, with KA of the full profile as the baseline, the validity
+parameter `C` as the organizing axis, and both zeroth orders. The next version accompanies the revised manuscript: the KA zeroth order
+with the evanescent Kirchhoff amplitudes set to zero, the exact zeroth order as a boundary perturbation about the exact smooth solution,
+bootstrap over the sweeps, the design that separates `C` from the slope, the conditioning diagnostics, the other error metrics and the new
+validation scripts. The DOI badge above always points to the latest version.
 
 ## License
 
