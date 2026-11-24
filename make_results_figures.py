@@ -26,7 +26,10 @@ plt.rcParams.update({"text.usetex": True, "font.family": "serif", "text.latex.pr
                      "xtick.labelsize": 7, "ytick.labelsize": 7})
 OUT = os.path.join(HERE, "figures") + os.sep; os.makedirs(OUT, exist_ok=True)
 # grayscale palette (colour art is charged in print); the models are also told apart by marker and line style
-C_KAF, C_KA0, C_EX0, C_REF, C_Z0, C_SM = "0.40", "k", "0.50", "k", "0.72", "0.62"
+# colour (JQSRT: colour free online); categorical slots in fixed order, markers and line styles kept so the figure also reads in grey
+C_KAF, C_KA0, C_EX0, C_REF, C_Z0, C_SM = "#2a78d6", "#1baf7a", "#eda100", "k", "0.72", "0.55"
+C_SSA, C_SSA_LS = "#eb6834", (0, (3, 1, 1, 1))
+S_RAMP = ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281", "#0d366b"]   # sequential blue (steps 250-700) for the slope s
 WL, SIN, EPS, A_SMOOTH = 0.1, 0.35, 2.25, 0.03          # lambda/L (L = 10 lambda), sin(theta_i), eps, smooth amplitude a/L
 def l1(e, er, m): return np.abs(e - er)[m].sum() / er[m].sum()
 
@@ -165,14 +168,21 @@ def gather(cond_max=np.inf, keep_all=False, exclude=("sin=0.75", "sin=0.85", "aK
     return (pol[ok], fam[ok], X[ok], int((~ok).sum()), len(rows)) + ((clus[ok],) if return_cluster else ())
 
 
-def caxis(save=True):
+def caxis_v1(save=True):
+    """Fig. 2 as submitted to JOSA A (all models in one panel per polarisation), kept for reference; saves fig_Caxis_v1.pdf."""
     pol, fam, X, n_excl, n_all = gather()
     C, eK, eM, eX, eS = X[:, 0], X[:, 2], X[:, 3], X[:, 4], X[:, 7]
     bins = np.array([0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.6, 4.0]); mid = np.sqrt(bins[:-1] * bins[1:])
     fig, axs = plt.subplots(1, 2, figsize=(5.25, 3.5), sharey=True)   # printed at the text width of the template (5.25 in): fonts are 1:1
     out = {}
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "validation"))
+    import ssa_sweeps                                                      # first-order small-slope approximation, same rows as gather()
+    eA = ssa_sweeps.aligned()[3][:, 1]
     for ax, pl in zip(axs, ("TE", "TM")):
         m = pol == pl
+        sel_b = [m & (fam == "cos") & (C >= lo) & (C < hi) for lo, hi in zip(bins[:-1], bins[1:])]
+        qa = np.array([np.median(100 * eA[s_]) if s_.sum() > 3 else np.nan for s_ in sel_b])
+        ax.plot(mid, qa, ls=C_SSA_LS, marker="D", color=C_SSA, lw=1.2, ms=3.2, mec="w", mew=0.4)   # SSA-1, median only
         for e, col, mk, ls, dots in ((eK, C_KAF, "s", "-", True), (eM, C_KA0, "o", "--", False), (eX, C_EX0, "^", ":", True)):
             for fm, size, al in (("cos", 5, 0.22), ("rnd", 4, 0.16)):
                 s_ = m & (fam == fm)
@@ -194,10 +204,11 @@ def caxis(save=True):
     axs[0].set_ylabel("relative $L^1$ error (\\%)")
     from matplotlib.lines import Line2D
     h = [Line2D([0], [0], color=C_KAF, marker="s", ms=4, ls="-"), Line2D([0], [0], color=C_KA0, marker="o", ms=4, ls="--"), Line2D([0], [0], color=C_EX0, marker="^", ms=4, ls=":"),
-         Line2D([0], [0], color="k", ls=(0, (5, 1.5, 1, 1.5)), lw=0.9), Line2D([0], [0], color=C_SM, marker="x", ms=4, ls="-.", lw=1.3)]
-    fig.legend(h, ["KA, full profile", r"series ($n\leq3$) about the KA smooth solution", r"series ($n\leq3$) about the exact smooth solution", r"fit of KA, full profile", r"smooth profile alone (roughness ignored)"], loc="upper center", ncol=2, frameon=False, fontsize=6.5, handlelength=1.8, columnspacing=1.3)
-    fig.tight_layout(rect=(0, 0, 1, 0.86))
-    if save: fig.savefig(OUT + "fig_Caxis.pdf")
+         Line2D([0], [0], color="k", ls=(0, (5, 1.5, 1, 1.5)), lw=0.9), Line2D([0], [0], color=C_SM, marker="x", ms=4, ls="-.", lw=1.3),
+         Line2D([0], [0], color=C_SSA, marker="D", ms=3.2, ls=C_SSA_LS, lw=1.2)]
+    fig.legend(h, ["KA, full profile", r"series ($n\leq3$) about the KA smooth solution", r"series ($n\leq3$) about the exact smooth solution", r"fit of KA, full profile", r"smooth profile alone (roughness ignored)", r"small-slope approximation (SSA-1)"], loc="upper center", ncol=2, frameon=False, fontsize=6.5, handlelength=1.8, columnspacing=1.3)
+    fig.tight_layout(rect=(0, 0, 1, 0.83))
+    if save: fig.savefig(OUT + "fig_Caxis_v1.pdf")
     plt.close(fig)
     print(f"cells/surfaces used: {len(C)} of {n_all} ({n_excl} excluded: none; grazing incidence and aK=0.38 are left out before); per polarisation TE {np.sum(pol=='TE')}, TM {np.sum(pol=='TM')}")
     for pl in ("TE", "TM"): print(f"  KA(full) fit, cosine profiles, {pl}: error = {out[pl][0]:.2f} * C^{out[pl][1]:.2f}")
@@ -208,6 +219,58 @@ def caxis(save=True):
             s_ = (pol == pl) & (C >= lo) & (C < hi)
             if s_.sum() > 3: print(f"    C {lo:5.2f}-{hi:5.2f}: {100*np.median(eK[s_]):7.2f} | {100*np.median(eM[s_]):6.2f} | {100*np.median(eX[s_]):6.2f} | {np.median(eK[s_]/eM[s_]):5.1f} | {100*np.mean(eM[s_]<eK[s_]):3.0f}% | {s_.sum()} | {100*np.median(eS[s_ & (fam == 'cos')]) if (s_ & (fam == 'cos')).sum() else float('nan'):7.2f}")
     return out
+
+
+def caxis(save=True):
+    """Fig. 2.  Top (a, b): every profile, error of KA versus C, grey level = slope s of the small scale (cosines: squares,
+    random-phase: dots), with the fit Eq. (28).  Bottom (c, d): medians of the cosine profiles in bins of C for all the models."""
+    from matplotlib.colors import LogNorm
+    from matplotlib.lines import Line2D
+    pol, fam, X, n_excl, n_all = gather()
+    C, eK, eM, eX, eS, s = X[:, 0], X[:, 2], X[:, 3], X[:, 4], X[:, 7], X[:, 9]
+    sys.path.insert(0, os.path.join(HERE, "validation"))
+    import ssa_sweeps
+    eA = ssa_sweeps.aligned()[3][:, 1]
+    bins = np.array([0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.6, 4.0]); mid = np.sqrt(bins[:-1] * bins[1:])
+    fig, axs = plt.subplots(2, 2, figsize=(5.25, 5.8), sharex=True)
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("s", S_RAMP)
+    norm = LogNorm(0.02, 1.5)
+    for j, pl in enumerate(("TE", "TM")):
+        m = pol == pl
+        ax = axs[0, j]
+        r_ = m & (fam == "rnd"); c_ = m & (fam == "cos")
+        ax.scatter(C[r_], 100 * eK[r_], s=3, c=s[r_] if np.isfinite(s[r_]).all() else "0.6", marker=".", cmap=cmap, norm=norm, lw=0, rasterized=True) if np.isfinite(s[r_]).any() else \
+            ax.scatter(C[r_], 100 * eK[r_], s=4, color="0.75", marker=".", lw=0, rasterized=True)
+        sc = ax.scatter(C[c_], 100 * eK[c_], s=7, c=s[c_], marker="s", cmap=cmap, norm=norm, lw=0, rasterized=True)
+        sel = c_ & (C > 0.03); k = np.polyfit(np.log(C[sel]), np.log(eK[sel]), 1)
+        cc = np.logspace(np.log10(0.03), np.log10(4), 40); ax.plot(cc, 100 * np.exp(k[1]) * cc ** k[0], color="k", ls=(0, (5, 1.5, 1, 1.5)), lw=0.9)
+        ax.set_title(f"({'ab'[j]}) KA, full profile, {pl}", fontsize=8, loc="left")
+        ax = axs[1, j]
+        for e, col, mk, ls, lab in ((eK, C_KAF, "s", "-", "KA"), (eM, C_KA0, "o", "--", "KA0"), (eX, C_EX0, "^", ":", "EX0"),
+                                    (eA, C_SSA, "D", C_SSA_LS, "SSA"), (eS, C_SM, "x", "-.", "SM")):
+            q = np.array([np.median(100 * e[c_ & (C >= lo) & (C < hi)]) if (c_ & (C >= lo) & (C < hi)).sum() > 3 else np.nan for lo, hi in zip(bins[:-1], bins[1:])])
+            ax.plot(mid, q, ls=ls, marker=mk, color=col, lw=1.4 if lab != "SM" else 1.1, ms=4 if mk != "D" else 3.3, mec="w" if mk != "x" else col, mew=0.4)
+        ax.set_title(f"({'cd'[j]}) medians of the cosine profiles, {pl}", fontsize=8, loc="left")
+        ax.set_xlabel(r"KA validity parameter $\mathcal{C}$")
+    for ax in axs.flat:
+        ax.axvspan(0.01, 0.05, color="0.9", lw=0, zorder=0); ax.axhline(1, color="k", lw=0.5, ls=":")
+        ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlim(0.01, 4)
+    for ax in axs[0]: ax.set_ylim(5e-2, 2e3)
+    for ax in axs[1]: ax.set_ylim(2e-2, 1e3)
+    axs[0, 1].set_yticklabels([]); axs[1, 1].set_yticklabels([])
+    axs[0, 0].set_ylabel("error of KA (\\%)"); axs[1, 0].set_ylabel("median error (\\%)")
+    axs[0, 0].text(0.011, 1.2e3, "both scales\nKA-valid", fontsize=6.5, va="top")
+    fig.subplots_adjust(left=0.1, right=0.87, top=0.96, bottom=0.155, hspace=0.18, wspace=0.06)
+    p1 = axs[0, 1].get_position(); cax = fig.add_axes([0.885, p1.y0 + 0.02, 0.016, p1.height - 0.04])
+    cb = fig.colorbar(sc, cax=cax); cb.set_label(r"slope $s$ of the small scale", fontsize=7); cb.ax.tick_params(labelsize=6.5)
+    h = [Line2D([0], [0], color=C_KAF, marker="s", ms=4, ls="-"), Line2D([0], [0], color=C_SSA, marker="D", ms=3.3, ls=C_SSA_LS),
+         Line2D([0], [0], color=C_KA0, marker="o", ms=4, ls="--"), Line2D([0], [0], color=C_EX0, marker="^", ms=4, ls=":"),
+         Line2D([0], [0], color=C_SM, marker="x", ms=4, ls="-.", lw=1.1), Line2D([0], [0], color="k", ls=(0, (5, 1.5, 1, 1.5)), lw=0.9)]
+    fig.legend(h, ["KA, full profile", "SSA-1, full profile", r"series ($n\leq3$), KA zeroth order", r"series ($n\leq3$), exact zeroth order",
+                   "smooth profile alone", r"fit of KA in $\mathcal{C}$ (panels a, b)"], loc="lower center", bbox_to_anchor=(0.48, 0.0), ncol=3, frameon=False, fontsize=6.5, handlelength=2.2, columnspacing=1.2)
+    if save: fig.savefig(OUT + "fig_Caxis.pdf", dpi=400)
+    plt.close(fig)
+    print(f"fig_Caxis.pdf: {len(C)} rows; cosine per polarisation {np.sum((fam=='cos')&(pol=='TE'))}")
 
 
 def phasemap():
@@ -401,6 +464,6 @@ def numbers():
 
 
 if __name__ == "__main__":
-    cmds = {"spectra": spectra, "caxis": caxis, "phasemap": phasemap, "numbers": numbers}
+    cmds = {"spectra": spectra, "caxis": caxis, "caxis_v1": caxis_v1, "phasemap": phasemap, "numbers": numbers}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds: sys.exit("usage: python make_results_figures.py " + " | ".join(cmds))
     cmds[sys.argv[1]]()

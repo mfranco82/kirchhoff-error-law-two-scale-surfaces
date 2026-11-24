@@ -1,0 +1,51 @@
+check: KA recomputed vs stored, max relative difference 1.8e-08; SSA failures: 0
+
+=== TE: median error (%) of the cosine profiles in bins of C   [KA | SSA-1 | series ex0]   (n)
+  C 0.02-0.05:    0.70 |    2.36 |   0.05   (64)
+  C 0.05-0.10:    1.50 |    3.70 |   0.05   (73)
+  C 0.10-0.20:    3.07 |    4.20 |   0.07   (72)
+  C 0.20-0.40:    9.11 |    4.45 |   0.37   (67)
+  C 0.40-0.80:   26.54 |    5.58 |   0.93   (61)
+  C 0.80-1.60:  127.05 |   19.85 |   8.35   (20)
+  C 1.60-4.00:  308.11 |   36.94 |  38.18   (7)
+  SSA better than KA in 43% of the cosines; median ratio SSA/KA 1.31
+     C 0-0.05: SSA<KA in 3%, median SSA/KA 4.00, SSA<series(ex0) in 1%  (71)
+     C 0.05-0.2: SSA<KA in 21%, median SSA/KA 1.94, SSA<series(ex0) in 1%  (145)
+     C 0.2-0.8: SSA<KA in 80%, median SSA/KA 0.28, SSA<series(ex0) in 5%  (128)
+     C 0.8-9: SSA<KA in 96%, median SSA/KA 0.13, SSA<series(ex0) in 26%  (27)
+  random-phase: median KA 4.86%, SSA 3.25%, SSA<KA in 51%
+  smooth profile alone (cosine, vs its Rayleigh solution): median KA 0.28%, SSA 1.90%
+  SSA fit (C>0.03): 0.12 C^-0.71 s^1.62, scatter 0.27 decades
+  limits kb<=0.5 KA        : C  0.05  0.09  0.20  0.31   s  0.11  0.17  0.28  0.38
+  limits kb<=0.5 SSA-1     : C  0.00  0.00  0.45  0.81   s  0.00  0.04  0.41  0.82
+  limits kb<=0.5 series ex0: C  0.58  0.73  0.99   inf   s  0.54  0.67  0.94   inf
+
+=== TM: median error (%) of the cosine profiles in bins of C   [KA | SSA-1 | series ex0]   (n)
+  C 0.02-0.05:    0.79 |    1.84 |   0.07   (64)
+  C 0.05-0.10:    1.70 |    2.85 |   0.09   (73)
+  C 0.10-0.20:    3.55 |    4.47 |   0.15   (72)
+  C 0.20-0.40:    8.25 |    8.48 |   0.71   (67)
+  C 0.40-0.80:   21.72 |   12.23 |   0.76   (61)
+  C 0.80-1.60:   58.73 |   30.53 |   4.89   (20)
+  C 1.60-4.00:   87.96 |   76.15 |  55.94   (7)
+  SSA better than KA in 43% of the cosines; median ratio SSA/KA 1.15
+     C 0-0.05: SSA<KA in 8%, median SSA/KA 2.48, SSA<series(ex0) in 4%  (71)
+     C 0.05-0.2: SSA<KA in 30%, median SSA/KA 1.36, SSA<series(ex0) in 6%  (145)
+     C 0.2-0.8: SSA<KA in 69%, median SSA/KA 0.84, SSA<series(ex0) in 2%  (128)
+     C 0.8-9: SSA<KA in 81%, median SSA/KA 0.49, SSA<series(ex0) in 19%  (27)
+  random-phase: median KA 4.36%, SSA 3.69%, SSA<KA in 60%
+  smooth profile alone (cosine, vs its Rayleigh solution): median KA 0.49%, SSA 1.60%
+  SSA fit (C>0.03): 0.30 C^0.02 s^1.18, scatter 0.20 decades
+  limits kb<=0.5 KA        : C  0.04  0.08  0.20  0.34   s  0.10  0.18  0.29  0.40
+  limits kb<=0.5 SSA-1     : C  0.00  0.04  0.16  0.42   s  0.00  0.09  0.29  0.44
+  limits kb<=0.5 series ex0: C  0.64  0.83   inf   inf   s  0.51  0.62   inf   inf
+
+decorrelated design: SSA vs KA at fixed C  (median over Lambda; range)
+  TE C=0.05: KA   0.3-  1.3%   SSA   1.9-  4.1%   (11 cells)
+  TE C=0.10: KA   0.3-  5.8%   SSA   1.8- 11.3%   (11 cells)
+  TE C=0.20: KA   1.0- 29.6%   SSA   1.5- 23.9%   (10 cells)
+  TE C=0.40: KA   4.1- 33.7%   SSA   1.0- 39.4%   (8 cells)
+  TM C=0.05: KA   0.5-  2.1%   SSA   1.6-  2.5%   (11 cells)
+  TM C=0.10: KA   0.5-  3.9%   SSA   1.6-  6.3%   (11 cells)
+  TM C=0.20: KA   0.9- 12.7%   SSA   1.7- 16.9%   (10 cells)
+  TM C=0.40: KA   3.9- 25.3%   SSA   2.1- 31.0%   (8 cells)

@@ -1,22 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 type: software
-title: "Code for: Error law and tolerance limits of the Kirchhoff approximation on two-scale dielectric surfaces, with boundary-variation corrections"
+title: "Code for: Empirical error scaling of the Kirchhoff approximation on periodic surfaces with small-scale roughness"
 abstract: >-
-  Python code and cached data behind the figure, the tables and the numbers of the paper, and the validation scripts. The paper gives the
-  error law of the Kirchhoff approximation (KA, an expansion in the curvature of the surface) against its validity parameter C and the
-  slope of the roughness, and the limits of C for a tolerated error, for one-dimensional lossless dielectric surfaces made of a smooth
-  periodic profile carrying a small-scale roughness (TE and TM), against an independent C-method reference with energy conservation as a
-  check. A boundary-variation series (the method of variation of boundaries, an expansion in the height, taken about the periodic
-  surface, with the Kirchhoff amplitudes or the exact solution of the smooth profile as zeroth order) is used to measure how far the
-  small scale can be added to the smooth-profile solution.
+  Python code and cached data behind the figure, the tables and the numbers of the paper, and the validation scripts. The paper measures,
+  against an independent C-method reference with energy conservation as a check, how the error of the Kirchhoff approximation (KA, an
+  expansion in the curvature of the surface) depends on its validity parameter C and on the slope s of the small scale, for
+  one-dimensional lossless dielectric surfaces made of a smooth periodic profile carrying a small-scale roughness (TE and TM): an
+  empirical scaling in (C, s), tolerance limits, and the energy balance as an indicator. It compares KA with the first-order small-slope
+  approximation (SSA-1), and uses a boundary-variation series (the method of variation of boundaries taken about the periodic surface,
+  with the Kirchhoff amplitudes or the exact solution of the smooth profile as zeroth order) to show what KA misses.
 authors:
   - family-names: Franco
     given-names: Mariano
     email: mfranco@iafe.uba.ar
     affiliation: "Instituto de Astronomía y Física del Espacio (IAFE), CONICET-Universidad de Buenos Aires, Argentina"
-version: 0.3.0
-date-released: "2026-10-15"
+version: 0.4.0
+date-released: "2026-11-24"   # set to the actual release date
 license: MIT
 repository-code: "https://github.com/mfranco82/kirchhoff-error-law-two-scale-surfaces"
 keywords:
@@ -24,5 +24,6 @@ keywords:
   - rough surfaces
   - Kirchhoff approximation
   - validity of the Kirchhoff approximation
+  - small-slope approximation
   - method of variation of boundaries
   - perturbation theory
