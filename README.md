@@ -114,6 +114,10 @@ validation scripts. `v0.4.0` accompanies the version submitted to JQSRT, reframe
 small-slope approximation (`ssa.py`, `validation/ssa_checks.py`, `validation/ssa_sweeps.py`, `data/ssa_sweeps.npz`) and the
 four-panel colour Fig. 2. The DOI badge above always points to the latest version.
 
+## Use of AI tools
+
+Parts of the code were written with the assistance of Claude (Anthropic) and validated as described in `validation/`.
+
 ## License
 
 The code is released under the MIT license (see `LICENSE`).
