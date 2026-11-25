@@ -3,13 +3,15 @@ message: "If you use this software, please cite it using the metadata below."
 type: software
 title: "Code for: Empirical error scaling of the Kirchhoff approximation on periodic surfaces with small-scale roughness"
 abstract: >-
-  Python code and cached data behind the figure, the tables and the numbers of the paper, and the validation scripts. The paper measures,
+  Python code and cached data behind the figures, the tables and the numbers of the paper, and the validation scripts. The paper measures,
   against an independent C-method reference with energy conservation as a check, how the error of the Kirchhoff approximation (KA, an
   expansion in the curvature of the surface) depends on its validity parameter C and on the slope s of the small scale, for
   one-dimensional lossless dielectric surfaces made of a smooth periodic profile carrying a small-scale roughness (TE and TM): an
   empirical scaling in (C, s), tolerance limits, and the energy balance as an indicator. It compares KA with the first-order small-slope
   approximation (SSA-1), and uses a boundary-variation series (the method of variation of boundaries taken about the periodic surface,
-  with the Kirchhoff amplitudes or the exact solution of the smooth profile as zeroth order) to show what KA misses.
+  with the Kirchhoff amplitudes or the exact solution of the smooth profile as zeroth order) to show what KA misses. As an application
+  to light scattering, it computes the attenuation of the backscattered order of a sinusoidal grating by a sub-wavelength ripple and
+  compares it with the Debye-Waller factor.
 authors:
   - family-names: Franco
     given-names: Mariano
@@ -27,3 +29,5 @@ keywords:
   - small-slope approximation
   - method of variation of boundaries
   - perturbation theory
+  - light scattering
+  - Debye-Waller factor

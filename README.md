@@ -13,7 +13,9 @@ and the method of variation of boundaries is an expansion in its **height** (`kb
 reference, how the error of KA grows on a 1D lossless dielectric interface made of a smooth periodic profile carrying a small-scale
 roughness of low height but of wavelength comparable to the radiation, compares it with the first-order small-slope approximation
 (SSA-1, `ssa.py`), and uses a boundary-variation series to see what KA misses and how far the small scale can be added to the
-smooth-profile solution. The variations are taken **about the periodic surface** instead of a flat one, so the Taylor
+smooth-profile solution. As an application to light scattering (Sec. 4.5, Fig. 3, `validation/backscatter.py`), it computes how a
+sub-wavelength ripple attenuates the backscattered order of a grating close to the sinusoidal reference artefacts measured at NIST,
+and compares the result with KA, SSA-1, the series and the Debye–Waller factor. The variations are taken **about the periodic surface** instead of a flat one, so the Taylor
 coefficients `d±_{n,r}` of order `n` are coupled across all Floquet orders `r`. The zeroth order of the series is either the Kirchhoff
 amplitudes of the propagating orders of the smooth profile ("KA zeroth order") or its exact (Rayleigh) solution ("exact zeroth order",
 which contains no KA). TE and TM polarizations are supported. The reference solution is an independent C-method solver; the baseline is
@@ -25,7 +27,7 @@ Figure 1 of the paper is a schematic of the geometry and is not produced by this
 
 * Python 3 with `numpy`, `scipy` and `matplotlib` (see `requirements.txt`; tested with Python 3.12.4–3.12.7, numpy 1.26.4,
   scipy 1.13.1, matplotlib 3.8.4 and 3.9.2).
-* A LaTeX installation with the `mathpazo` and `amsmath` packages (e.g. TeX Live): the figure is drawn with `text.usetex`, so that its
+* A LaTeX installation with the `mathpazo` and `amsmath` packages (e.g. TeX Live): the figures are drawn with `text.usetex`, so that their
   typography matches the paper.
 * The cache-producing scripts use `multiprocessing.Pool(8)` (the 2026-10-15 regeneration used 6 workers for all but `robustness.py` and `phase_map.py`, which used 8). Every case is seeded independently, so the results do not depend on the
   number of cores (only the running time does).
@@ -39,7 +41,7 @@ Figure 1 of the paper is a schematic of the geometry and is not produced by this
 | `cmethod.py` | independent C-method (Chandezon et al.) solver, which does not use the Rayleigh hypothesis; it is the reference of the paper |
 | `make_results_figures.py` | Figs. 2 and 3 and the numbers quoted in the text |
 | `robustness.py`, `phase_map.py`, `random_stats.py` | studies that fill the caches in `data/`: cosine profiles one parameter at a time, the grid in `Λ` and `kb`, and the random-phase profiles |
-| `data/` | cached results of the studies (and of the validation scripts), so that the figure and the numbers can be regenerated without recomputing; see below |
+| `data/` | cached results of the studies (and of the validation scripts), so that the figures and the numbers can be regenerated without recomputing; see below |
 | `validation/` | tests of the solvers and of the recursion, and the scripts behind the numbers of Secs. 4 and 5; see `validation/README.md` |
 
 Conventions: incident wave `exp(i(αx − βz))`, `α_r = α + rK`; TE has `ν² = 1` and TM `ν² = 1/ε`; the error of a model is the relative
@@ -48,9 +50,9 @@ orders (`ε⁺`) or the transmitted ones (`ε⁻`). The validity parameter `C` i
 sum of the contributions of both scales; for the random-phase profiles, from the maximum of `|z''|`); `s = kb λ/λ_s` is the slope of the
 small scale.
 
-## Reproducing the figure and the numbers
+## Reproducing the figures and the numbers
 
-Run the commands from this folder. The figure is written to `figures/`, which is created if it does not exist.
+Run the commands from this folder. The figures are written to `figures/`, which is created if it does not exist.
 
 | result | command | what it reads | time |
 |---|---|---|---|
@@ -64,7 +66,7 @@ Run the commands from this folder. The figure is written to `figures/`, which is
 `make_results_figures.py` also has the commands `spectra` and `phasemap` (exploratory figures of the spectra of one case and of the
 plane `(Λ, kb)`), which are not in the paper.
 
-The figure is in colour (free online in the journal): each model has a fixed colour from a colour-blind-safe categorical palette and
+Fig. 2 is in colour (free online in the journal): each model has a fixed colour from a colour-blind-safe categorical palette and
 keeps its own marker and line style, so it also reads in grey; the slope `s` of the small scale is a single-hue (blue) scale. The
 `caxis_v1` command draws the one-panel layout of Fig. 2 of the earlier submission (in the current colours).
 
@@ -115,7 +117,7 @@ with the evanescent Kirchhoff amplitudes set to zero, the exact zeroth order as 
 bootstrap over the sweeps, the design that separates `C` from the slope, the conditioning diagnostics, the other error metrics and the new
 validation scripts. `v0.4.0` accompanies the version submitted to JQSRT, reframed around the error of KA: it adds the first-order
 small-slope approximation (`ssa.py`, `validation/ssa_checks.py`, `validation/ssa_sweeps.py`, `data/ssa_sweeps.npz`) and the
-four-panel colour Fig. 2. After `v0.4.0` (not yet released): the attenuation of a diffracted order by the small scale and the
+four-panel colour Fig. 2. Added in `main` after the `v0.4.0` tag, still under version 0.4.0 (not in a tagged release): the attenuation of a diffracted order by the small scale and the
 Debye–Waller factor, Sec. 4.5 and Fig. 3 (`validation/backscatter.py`, `data/backscatter.npz`, `make_results_figures.py backscatter`).
 The DOI badge above always points to the latest version.
 
