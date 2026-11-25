@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/1403194780.svg)](https://zenodo.org/badge/latestdoi/1403194780)
 
-Python code that generates the figure of the Results section (Fig. 2) and the numbers quoted in the text of
+Python code that generates the figures of the Results section (Figs. 2 and 3) and the numbers quoted in the text of
 
 > M. Franco, *Empirical error scaling of the Kirchhoff approximation on periodic surfaces with small-scale roughness*.
 
@@ -37,7 +37,7 @@ Figure 1 of the paper is a schematic of the geometry and is not produced by this
 | `scattering.py` | KA amplitudes of the smooth profile (reflected and transmitted; `ka_amplitudes_propagating` sets the evanescent ones to zero), MVB recursion about the smooth surface (`mvb_coefficients`; `SmoothOperator` factorizes the system matrix once and reuses it for any roughness), Rayleigh solver (the exact zeroth order and a diagnostic), efficiencies |
 | `ssa.py` | first-order small-slope approximation (Voronovich) for a 1D periodic dielectric profile, TE and TM, reflected and transmitted amplitudes; its first-order kernels are derived from the same boundary conditions and checked against the first order of the recursion about a flat surface (`validation/ssa_checks.py`) |
 | `cmethod.py` | independent C-method (Chandezon et al.) solver, which does not use the Rayleigh hypothesis; it is the reference of the paper |
-| `make_results_figures.py` | Fig. 2 and the numbers quoted in the text |
+| `make_results_figures.py` | Figs. 2 and 3 and the numbers quoted in the text |
 | `robustness.py`, `phase_map.py`, `random_stats.py` | studies that fill the caches in `data/`: cosine profiles one parameter at a time, the grid in `Λ` and `kb`, and the random-phase profiles |
 | `data/` | cached results of the studies (and of the validation scripts), so that the figure and the numbers can be regenerated without recomputing; see below |
 | `validation/` | tests of the solvers and of the recursion, and the scripts behind the numbers of Secs. 4 and 5; see `validation/README.md` |
@@ -58,6 +58,8 @@ Run the commands from this folder. The figure is written to `figures/`, which is
 | numbers of the abstract and of Secs. 4–5 (percentiles per bin of `C`, fit of the error law, gain of the series, 46 profiles with condition number above 1e15, stability by condition number, dependence on `kb` and on the slope, local versus global `C`, floor of the KA zeroth order against the incidence angle, base-case errors) | `python make_results_figures.py numbers` | the three caches above | ~10 s |
 | Table 1, limits of `C` and `s` for a tolerance (KA and the series) | `python validation/tolerance_Cmax.py` | the caches | seconds |
 | SSA-1: Sec. 4.4, its rows of Table 1, the medians of Fig. 2 | `python validation/ssa_sweeps.py summary` | `data/ssa_sweeps.npz` and the caches above | ~10 s |
+| Fig. 3, attenuation of the backscattered order by the small scale (Sec. 4.5) | `python make_results_figures.py backscatter` | `data/backscatter.npz` | seconds |
+| numbers of Sec. 4.5 (attenuation, error of each model, fraction of the attenuation captured, height inferred with the Debye–Waller factor) | `python validation/backscatter.py summary` | `data/backscatter.npz` | seconds |
 
 `make_results_figures.py` also has the commands `spectra` and `phasemap` (exploratory figures of the spectra of one case and of the
 plane `(Λ, kb)`), which are not in the paper.
@@ -74,6 +76,7 @@ The studies behind the caches can be rerun (they overwrite the files in `data/`)
 | `phase_map.npz` | `python phase_map.py compute` | 9 values of `Λ` × 7 of `kb` at `θ_i` = 20°, TE and TM | ~1 min (8 cores) |
 | `random_stats.npz` | `python random_stats.py compute` | 40 random-phase profiles for each of 12 configurations (3 bands × 4 amplitudes), TE and TM | ~6 min (6 cores) |
 | `ssa_sweeps.npz` | `python validation/ssa_sweeps.py compute 6` | SSA-1 (and KA, recomputed as a check) against a recomputed C-method reference for all the profiles of the three caches above and of the decorrelated design (1958 cases) | ~5 min (6 cores) |
+| `backscatter.npz` | `python validation/backscatter.py compute` | backscattered (Littrow, `r = −1`) order of a sinusoidal grating close to the NIST reference gratings (`L = 10.25λ`, `aK = 0.085`, `θ_i = 2.8°`) with a small scale `Λ = 15`: 40 values of `kb` at `ε = 2.25` and 31 values of `ε` (1.15–16, half-way between transmitted Wood anomalies) at `kb = 0.25`, TE and TM; C-method, KA, SSA-1, smooth profile alone and the series (`n ≤ 1`, `n ≤ 3`, both zeroth orders); the Debye–Waller attenuation is derived from the stored smooth-profile efficiencies | ~1 min (6 cores) |
 
 `python robustness.py summary`, `python phase_map.py table` and `python random_stats.py summary` print the contents of the caches. Two
 configurations of `robustness.py` (grazing incidence, `sin θ_i` = 0.75 and 0.85, and `aK` = 0.38) are used only for the floor of the KA
@@ -112,7 +115,9 @@ with the evanescent Kirchhoff amplitudes set to zero, the exact zeroth order as 
 bootstrap over the sweeps, the design that separates `C` from the slope, the conditioning diagnostics, the other error metrics and the new
 validation scripts. `v0.4.0` accompanies the version submitted to JQSRT, reframed around the error of KA: it adds the first-order
 small-slope approximation (`ssa.py`, `validation/ssa_checks.py`, `validation/ssa_sweeps.py`, `data/ssa_sweeps.npz`) and the
-four-panel colour Fig. 2. The DOI badge above always points to the latest version.
+four-panel colour Fig. 2. After `v0.4.0` (not yet released): the attenuation of a diffracted order by the small scale and the
+Debye–Waller factor, Sec. 4.5 and Fig. 3 (`validation/backscatter.py`, `data/backscatter.npz`, `make_results_figures.py backscatter`).
+The DOI badge above always points to the latest version.
 
 ## Use of AI tools
 

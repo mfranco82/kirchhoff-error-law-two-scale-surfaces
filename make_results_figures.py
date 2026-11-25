@@ -463,7 +463,52 @@ def numbers():
     statistics()
 
 
+def backscatter(save=True):
+    """Backscattered (Littrow, r = -1) order of a sinusoidal grating with a sub-wavelength small scale (NIST-like geometry,
+    validation/backscatter.py): attenuation of e+_{-1} by the small scale and error of each model, versus kb (eps = 2.25) and versus
+    eps (kb = 0.25); height inferred from the attenuation with the Debye-Waller factor.  Reads data/backscatter.npz."""
+    from matplotlib.lines import Line2D
+    sys.path.insert(0, os.path.join(HERE, "validation"))
+    import backscatter as BS
+    d = np.load(BS.FILE); xi, eps = d["xis"], d["sqeps"] ** 2
+    C_DW = "#8a5cc2"
+    fig, axs = plt.subplots(2, 2, figsize=(5.25, 4.6), sharex="col")
+    LS = {"TE": "-", "TM": "--"}
+    mods = (("KA", C_KAF, "s", "KA, full profile"), ("SSA1", C_SSA, "D", "SSA-1"), ("DW", C_DW, "v", "smooth exact $\\times$ Debye--Waller"),
+            ("ex0_n3", C_EX0, "^", r"series $n\leq3$, exact zeroth order"))
+    for ip, pol in enumerate(("TE", "TM")):
+        for col, sweep, x, mev in ((0, "xi", xi, 4), (1, "eps", eps, 3)):
+            eb, rel, L1, fr = BS.quantities(d, sweep, ip)
+            ax = axs[0, col]
+            ax.plot(x, eb["ref"] / eb["smooth"], color=C_REF, ls=LS[pol], lw=1.1)
+            for m, c, mk, _ in mods:
+                if col == 0 or m != "SSA1":
+                    ax.plot(x, eb[m] / eb["smooth"], color=c, ls=LS[pol], lw=0.9, marker=mk, ms=2.6, markevery=mev, mec="w", mew=0.3)
+            if col == 0:
+                ax = axs[1, 0]
+                for m, c, mk, _ in mods:
+                    ax.plot(x, 100 * abs(rel[m]), color=c, ls=LS[pol], lw=0.9, marker=mk, ms=2.6, markevery=mev, mec="w", mew=0.3)
+            else:
+                axs[1, 1].plot(x, BS.kb_from_attenuation(eb["ref"] / eb["smooth"]), color=C_DW, ls=LS[pol], lw=1.0, marker="v", ms=2.6, markevery=mev, mec="w", mew=0.3)
+    axs[0, 0].set_xscale("log"); axs[1, 0].set_yscale("log"); axs[1, 0].set_ylim(1e-3, 3e2); axs[0, 0].set_ylim(0, 1.25)
+    axs[0, 1].set_xscale("log"); axs[0, 1].set_ylim(0.75, 1.02); [axs[r, 1].axvline((15 / BS.LR - BS.SIN) ** 2, color="0.6", lw=0.6, ls=":") for r in (0, 1)]
+    axs[1, 0].axhline(1, color="k", lw=0.5, ls=":"); axs[1, 1].axhline(0.25, color="k", lw=0.6); axs[1, 1].set_ylim(0, 0.35)
+    axs[1, 1].text(1.2, 0.262, "true $kb$", fontsize=6.5)
+    for ax in axs[:, 1]:
+        ax.set_xticks([1.25, 2, 4, 8, 16]); ax.set_xticklabels(["1.25", "2", "4", "8", "16"])
+    axs[1, 0].set_xlabel(r"height of the small scale $kb$ ($=\xi$), $\epsilon=2.25$"); axs[1, 1].set_xlabel(r"permittivity $\epsilon$, $kb=0.25$")
+    axs[0, 0].set_ylabel(r"$e^+_{-1}/e^+_{-1}$(smooth profile)"); axs[1, 0].set_ylabel(r"$|\Delta e^+_{-1}|/e^+_{-1}$ (\%)")
+    axs[1, 1].set_ylabel(r"$kb$ inferred with Debye--Waller")
+    for ax, t in zip(axs.flat, ("(a)", "(b)", "(c)", "(d)")): ax.set_title(t, fontsize=8, loc="left")
+    fig.subplots_adjust(left=0.11, right=0.98, top=0.95, bottom=0.2, hspace=0.2, wspace=0.3)
+    h = [Line2D([0], [0], color=C_REF, lw=1.1)] + [Line2D([0], [0], color=c, marker=mk, ms=3) for _, c, mk, _ in mods] + \
+        [Line2D([0], [0], color="0.3", ls="-"), Line2D([0], [0], color="0.3", ls="--")]
+    fig.legend(h, ["C-method (reference)"] + [lab for *_, lab in mods] + ["TE", "TM"], loc="lower center", ncol=3, frameon=False, fontsize=6.5, handlelength=2.2, columnspacing=1.2)
+    if save: fig.savefig(OUT + "fig_backscatter.pdf", dpi=400)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
-    cmds = {"spectra": spectra, "caxis": caxis, "caxis_v1": caxis_v1, "phasemap": phasemap, "numbers": numbers}
+    cmds = {"spectra": spectra, "caxis": caxis, "caxis_v1": caxis_v1, "phasemap": phasemap, "numbers": numbers, "backscatter": backscatter}
     if len(sys.argv) < 2 or sys.argv[1] not in cmds: sys.exit("usage: python make_results_figures.py " + " | ".join(cmds))
     cmds[sys.argv[1]]()
